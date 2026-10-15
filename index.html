@@ -28,6 +28,9 @@
         <h3>Leilão</h3>
         <p class="muted">Estado atual: <b id="biddingState">—</b></p>
         <button id="toggleBidding" class="secondary">⏸ Pausar lances</button>
+        <p class="muted admin-sep">Pokémon em leilão: <b id="marketState">—</b></p>
+        <div class="btn-row"><button id="unlistAll" class="secondary danger">🚫 Tirar todos do leilão</button><button id="listAll" class="secondary">Liberar todos para lances</button></div>
+        <p class="muted">Depois de tirar todos, use <b>▶ Colocar em leilão</b> no card de cada Pokémon que você quiser leiloar.</p>
         <label class="lbl">Lance inicial padrão (Pokémon sem preço definido)<input id="defaultBid" type="number" min="1" max="100000" value="100"></label>
         <button id="saveDefaultBid" class="secondary">Salvar lance inicial</button>
       </div>
@@ -54,7 +57,7 @@
     <div class="toolbar">
       <input id="search" class="search" type="search" autocomplete="off" placeholder="🔎 Buscar Pokémon por nome ou número (ex.: pikachu, 25, fogo)">
       <select id="typeFilter" aria-label="Filtrar por tipo"><option value="Todos">Todos os tipos</option></select>
-      <select id="statusFilter" aria-label="Filtrar por situação"><option value="todos">Todos</option><option value="livres">Disponíveis (sem lote)</option><option value="abertos">Em leilão</option><option value="meus">Na minha liderança</option><option value="vendidos">Arrematados</option></select>
+      <select id="statusFilter" aria-label="Filtrar por situação"><option value="todos">Todos</option><option value="ativos">Em leilão agora</option><option value="fora">Fora de leilão</option><option value="meus">Na minha liderança</option><option value="vendidos">Arrematados</option></select>
     </div>
     <p id="catalogStatus" class="catalog-status"></p>
     <div id="pokemonGrid" class="pokemon-grid"><p class="muted">Carregando leilão...</p></div>
