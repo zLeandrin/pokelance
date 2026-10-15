@@ -2,6 +2,16 @@
    PokéLance — estilos
    ==========================================================================
 
+   COMO EDITAR (atalhos)
+   • Trocar cores, fontes, bordas arredondadas ou a largura do site:
+       mexa nas VARIÁVEIS da seção 1 (:root). Quase tudo usa elas.
+   • Mudar quantos cards aparecem por linha:
+       seção 10, regra ".pokemon-grid" (desktop = 3) e, na seção 14,
+       os blocos @media (tablet = 2, celular = 1).
+   • Mudar o tamanho do card / da imagem do Pokémon:
+       seção 10 → ".card-visual" (altura) e ".pokemon-img" (tamanho).
+   • Cada pedaço do site tem a sua seção; use Ctrl+F no número ou no nome.
+
    ÍNDICE
     1. Variáveis (cores, fontes, medidas)
     2. Base
@@ -599,6 +609,8 @@ select:focus { border-color: var(--yellow); }
 }
 .status.closed { color: var(--red-soft); }
 .status.free   { color: var(--blue); }
+.status.off    { color: #8d98b8; }
+.pokemon-card.is-off .card-visual { filter: saturate(.4); }   /* card fora de leilão fica "apagado" */
 
 /* Linha do lance: valor à esquerda, líder à direita */
 .bid-row {
@@ -708,6 +720,13 @@ select:focus { border-color: var(--yellow); }
   font: 700 15px var(--font-display);
 }
 .admin-box .muted b { color: var(--text); }
+.admin-sep { margin-top: 16px; }
+.btn-row {                    /* botões lado a lado dentro de uma caixa do admin */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
 
 .scroll-list {                /* listas com rolagem (jogadores, lances) */
   max-height: 260px;
@@ -822,3 +841,43 @@ footer {
   .admin { align-items: flex-start; flex-direction: column; }
   footer { gap: 10px; align-items: flex-start; flex-direction: column; }
 }
+
+
+/* ==========================================================================
+   15. SEM USO NO MOMENTO
+   Restos da versão antiga (botões de filtro por tipo e janela "Adicionar
+   Pokémon"). Nada no site usa isto hoje; pode apagar sem medo.
+   ========================================================================== */
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  background: #141a2c;
+  color: #aeb8d3;
+  font-size: 11px;
+}
+.filter.active,
+.filter:hover {
+  background: var(--yellow);
+  color: var(--on-yellow);
+  border-color: var(--yellow);
+  font-weight: 700;
+}
+
+.pokemon-title span { color: #7784a8; font-size: 10px; }
+.card-desc { font-size: 11px; color: #8e9bbd; margin: 5px 0 16px; }
+
+dialog {
+  width: min(450px, calc(100% - 28px));
+  border: 1px solid #394563;
+  border-radius: 16px;
+  background: #171e32;
+  color: #f5f7ff;
+  padding: 27px;
+  box-shadow: 0 20px 90px #000a;
+}
+dialog::backdrop { background: #050817cc; backdrop-filter: blur(4px); }
+dialog h2 { font: 700 25px var(--font-display); margin: 7px 0; }
+.x { float: right; border: 0; background: transparent; color: #aeb9d5; font-size: 25px; }
+.formrow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
