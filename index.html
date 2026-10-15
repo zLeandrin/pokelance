@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PokéLance — Leilão Pokémon</title><link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="#"><span class="pokeball"></span><span>Poké<span>Lance</span></span></a><div class="topright"><span class="live"></span> LEILÃO DA GALERA <button id="logoutBtn" class="ghost hidden">Sair</button></div></header>
+<main>
+<section class="hero"><div><div class="eyebrow">⚡ ESCOLHA. DÊ SEU LANCE. CONQUISTE.</div><h1>Quem vai ser o<br><span>mestre do leilão?</span></h1><p>Procure qualquer Pokémon da Pokédex e dispute com os amigos. Use seu saldo com sabedoria — o maior lance leva!</p></div><div class="hero-ball"><div class="ball"></div><b>✦</b></div></section>
+
+<section id="setupWarning" class="notice"><b>Configuração necessária</b><p>Configure o Supabase em <code>script.js</code> e execute <code>supabase-schema.sql</code> no painel SQL do seu projeto. Veja o LEIA-ME.txt.</p></section>
+
+<section id="authPanel" class="auth panel">
+  <div class="auth-tabs"><button class="tab active" data-mode="login">Entrar</button><button class="tab" data-mode="signup">Criar conta</button></div>
+  <h2 id="authTitle">Bem-vindo de volta, treinador!</h2><p class="muted">Use seu e-mail e senha para acessar sua carteira e participar do leilão.</p>
+  <form id="authForm"><label>E-mail<input id="email" type="email" autocomplete="email" required placeholder="voce@exemplo.com"></label><label>Senha<input id="password" type="password" minlength="6" autocomplete="current-password" required placeholder="Mínimo de 6 caracteres"></label><label id="nicknameWrap" class="hidden">Nome do treinador<input id="nickname" maxlength="20" placeholder="Como você quer aparecer?"></label><button class="primary full" id="authSubmit">Entrar no leilão</button><p id="authMessage" class="message"></p></form>
+</section>
+
+<section id="gamePanel" class="hidden">
+  <section class="player-panel"><div class="player-info"><div class="avatar">👾</div><div><small>SEU TREINADOR</small><strong id="playerName">Treinador</strong></div></div><div class="wallet"><span>◈</span><div><small>SEU SALDO</small><strong id="balance">₽ 1.000</strong><small id="committed" style="display:block;color:var(--muted);font-size:10px"></small></div></div><div class="wallet"><span>♛</span><div><small>POKÉMON ARREMATADOS</small><strong id="wins">0</strong></div></div></section>
+
+  <section id="adminPanel" class="panel admin admin-v3 hidden">
+    <div><div class="eyebrow">CONTROLE DO LEILÃO</div><h2>Painel do administrador</h2><p class="muted">Você controla os lances, os preços, os jogadores e quando cada lote termina. Nos cards você também vê os botões de administrador (linha de baixo).</p></div>
+    <div class="admin-grid">
+      <div class="admin-box">
+        <h3>Leilão</h3>
+        <p class="muted">Estado atual: <b id="biddingState">—</b></p>
+        <button id="toggleBidding" class="secondary">⏸ Pausar lances</button>
+        <label class="lbl">Lance inicial padrão (Pokémon sem preço definido)<input id="defaultBid" type="number" min="1" max="100000" value="100"></label>
+        <button id="saveDefaultBid" class="secondary">Salvar lance inicial</button>
+      </div>
+      <div class="admin-box">
+        <h3>Jogadores</h3>
+        <div id="playersList" class="scroll-list muted">Carregando...</div>
+      </div>
+      <div class="admin-box">
+        <h3>Últimos lances</h3>
+        <div id="bidsList" class="scroll-list muted">Nenhum lance ainda.</div>
+      </div>
+      <div class="admin-box">
+        <h3>Zona de risco</h3>
+        <p class="muted">Apaga todos os lotes e lances e redefine o saldo de todos os jogadores.</p>
+        <button id="resetSeason" class="secondary danger">Reiniciar temporada</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="pausedBanner" class="notice hidden"><b>Lances pausados</b><p>O administrador pausou os lances por enquanto. Você pode continuar procurando os Pokémon.</p></section>
+
+  <section class="auction">
+    <div class="section-heading"><div><div class="eyebrow">O MERCADO ESTÁ ABERTO</div><h2>Pokédex <span id="count" class="count">00</span></h2></div></div>
+    <div class="toolbar">
+      <input id="search" class="search" type="search" autocomplete="off" placeholder="🔎 Buscar Pokémon por nome ou número (ex.: pikachu, 25, fogo)">
+      <select id="typeFilter" aria-label="Filtrar por tipo"><option value="Todos">Todos os tipos</option></select>
+      <select id="statusFilter" aria-label="Filtrar por situação"><option value="todos">Todos</option><option value="livres">Disponíveis (sem lote)</option><option value="abertos">Em leilão</option><option value="meus">Na minha liderança</option><option value="vendidos">Arrematados</option></select>
+    </div>
+    <p id="catalogStatus" class="catalog-status"></p>
+    <div id="pokemonGrid" class="pokemon-grid"><p class="muted">Carregando leilão...</p></div>
+    <button id="loadMore" class="secondary load-more hidden">Mostrar mais</button>
+  </section>
+  <section class="panel history"><h2>Últimos resultados</h2><div id="historyList" class="muted">Nenhum Pokémon arrematado ainda.</div></section>
+  <section class="panel history"><h2>Meus Pokémon</h2><div id="myList" class="muted">Você ainda não arrematou nenhum Pokémon.</div></section>
+</section>
+<div id="toast" class="toast" role="status"></div>
+<footer><span class="brand small"><span class="pokeball"></span><span>Poké<span>Lance</span></span></span><span>Leilão entre amigos · Dinheiro virtual · Dados da PokéAPI</span></footer>
+</main>
+<script src="script.js"></script>
+</body></html>

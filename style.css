@@ -1,0 +1,824 @@
+/* ==========================================================================
+   PokéLance — estilos
+   ==========================================================================
+
+   ÍNDICE
+    1. Variáveis (cores, fontes, medidas)
+    2. Base
+    3. Topo e marca
+    4. Botões
+    5. Hero (faixa de abertura)
+    6. Painéis, avisos e mensagens
+    7. Formulários e campos
+    8. Painel do jogador (nome e saldo)
+    9. Leilão: título, busca e filtros
+   10. Leilão: grade e cards
+   11. Painel do administrador
+   12. Histórico
+   13. Aviso (toast) e rodapé
+   14. Responsivo (tablet e celular)
+   15. Sem uso no momento (pode apagar)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+
+/* ==========================================================================
+   1. VARIÁVEIS
+   ========================================================================== */
+:root {
+  /* Cores principais */
+  --bg:       #0c1020;   /* fundo da página */
+  --text:     #f5f7ff;   /* texto principal */
+  --muted:    #98a3c1;   /* texto secundário */
+  --yellow:   #ffcc4d;   /* destaque: botões, preços, títulos */
+  --red:      #ff5b65;
+  --green:    #65e6ad;
+  --blue:     #7fb7ff;   /* "Disponível" */
+  --line:     #2a3451;   /* bordas */
+  --red-soft: #ff9096;   /* "Leilão encerrado" e botões perigosos */
+  --text-soft: #b5bfd8;  /* rótulos e textos de apoio */
+  --on-yellow: #181b29;  /* texto sobre fundo amarelo */
+
+  /* Superfícies (gradientes de painéis e cards, campos e botões) */
+  --panel-a:    #19223a;
+  --panel-b:    #141a2d;
+  --card-a:     #1b233a;
+  --card-b:     #13192b;
+  --input-bg:   #0f1527;
+  --input-line: #36415f;
+  --btn-bg:     #202a44;
+  --btn-line:   #3a4564;
+
+  /* Fontes */
+  --font-body:    'DM Sans', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;   /* títulos e números */
+
+  /* Medidas */
+  --page-max:    1180px;   /* largura máxima do conteúdo */
+  --page-gutter: 24px;     /* margem lateral no desktop */
+  --grid-gap:    17px;     /* espaço entre os cards */
+
+  /* Bordas arredondadas */
+  --radius-lg: 15px;   /* painéis e cards */
+  --radius-md: 12px;   /* avisos, avatar, caixas do admin */
+  --radius-sm: 8px;    /* botões e campos */
+  --radius-xs: 6px;    /* etiquetas pequenas */
+}
+
+
+/* ==========================================================================
+   2. BASE
+   ========================================================================== */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 78% 4%, #20284a 0, transparent 34%),
+    var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+.hidden { display: none !important; }   /* usado pelo JavaScript para esconder/mostrar */
+
+main {
+  max-width: var(--page-max);
+  margin: auto;
+  padding: 0 var(--page-gutter);
+}
+
+
+/* ==========================================================================
+   3. TOPO E MARCA
+   ========================================================================== */
+.topbar {
+  height: 72px;
+  padding: 0 max(calc((100vw - var(--page-max)) / 2), var(--page-gutter));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #ffffff12;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+  text-decoration: none;
+  font: 700 22px var(--font-display);
+  letter-spacing: -.8px;
+}
+.brand > span:last-child > span { color: var(--yellow); }   /* "Lance" em amarelo */
+
+/* Pokébola do logotipo */
+.pokeball {
+  width: 28px;
+  height: 28px;
+  border: 3px solid white;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  background: linear-gradient(to bottom, var(--red) 0 46%, #fff 46% 54%, #20263b 54%);
+  overflow: hidden;
+}
+.pokeball:before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: -2px;
+  width: 28px;
+  height: 4px;
+  background: #20263b;
+}
+.pokeball:after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 3px solid #20263b;
+  border-radius: 50%;
+  background: #fff;
+  left: 7px;
+  top: 6px;
+}
+
+.topright {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-soft);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+.live {                       /* bolinha verde "ao vivo" */
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 12px var(--green);
+}
+
+
+/* ==========================================================================
+   4. BOTÕES
+   ========================================================================== */
+
+/* Botão discreto (Sair, Mostrar mais, botões do admin) */
+.ghost,
+.secondary {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: #dbe2f7;
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+}
+.ghost:hover,
+.secondary:hover {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+/* Botão amarelo principal (Entrar / Criar conta) */
+.primary {
+  background: var(--yellow);
+  border: 1px solid var(--yellow);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  color: var(--on-yellow);
+  font-weight: 700;
+}
+.primary:hover { background: #ffda79; }
+
+.full { width: 100%; margin-top: 8px; }   /* botão de largura total */
+
+/* Variação vermelha para ações perigosas (usar junto de .secondary) */
+.danger {
+  border-color: #7a3a41;
+  color: var(--red-soft);
+}
+.danger:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Mini-botão (lista de jogadores no painel do admin) */
+.mini {
+  border: 1px solid var(--btn-line);
+  background: var(--btn-bg);
+  color: #dce4fb;
+  border-radius: var(--radius-xs);
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.mini:hover {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+
+
+/* ==========================================================================
+   5. HERO (faixa de abertura com a Pokébola grande)
+   ========================================================================== */
+.hero {
+  min-height: 255px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.hero h1 {
+  font: 700 clamp(35px, 5vw, 54px)/1.04 var(--font-display);
+  letter-spacing: -2.5px;
+  margin: 0 0 14px;
+}
+.hero h1 span { color: var(--yellow); }
+.hero p {
+  max-width: 450px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.eyebrow {                    /* texto pequeno em caixa-alta acima dos títulos */
+  font-size: 10px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: var(--yellow);
+  margin-bottom: 12px;
+}
+
+.hero-ball {
+  width: 250px;
+  height: 220px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.hero-ball b {                /* estrelinha */
+  position: absolute;
+  right: 15px;
+  top: 20px;
+  color: var(--yellow);
+  font-size: 30px;
+}
+.ball {
+  width: 150px;
+  height: 150px;
+  border: 8px solid #f7f8ff;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #ff5865 0 47%, #20263b 47% 54%, #f8f8ff 54%);
+  box-shadow: 0 20px 60px #0008, 0 0 60px #ff5b6520;
+  transform: rotate(-17deg);
+  position: relative;
+}
+.ball:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - 6px);
+  height: 12px;
+  background: #20263b;
+}
+.ball:after {
+  content: "";
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f9fbff;
+  border: 8px solid #20263b;
+  left: calc(50% - 19px);
+  top: calc(50% - 19px);
+  box-shadow: 0 0 0 4px #f9fbff;
+}
+
+
+/* ==========================================================================
+   6. PAINÉIS, AVISOS E MENSAGENS
+   ========================================================================== */
+
+/* Caixa padrão (login, painel do jogador, admin, histórico) */
+.panel,
+.auth,
+.player-panel {
+  background: linear-gradient(110deg, var(--panel-a), var(--panel-b));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  margin-bottom: 25px;
+}
+
+.auth {                       /* caixa de login/cadastro */
+  max-width: 480px;
+  margin: 0 auto 35px;
+}
+
+/* Títulos de painel */
+.auth h2,
+.admin h2,
+.history h2 {
+  font: 700 25px var(--font-display);
+  margin: 7px 0;
+}
+
+.muted {                      /* texto de apoio */
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* Aviso amarelo (configuração necessária, lances pausados) */
+.notice {
+  border: 1px solid #715e30;
+  background: #292414;
+  border-radius: var(--radius-md);
+  padding: 16px 19px;
+  margin: 10px 0 24px;
+  font-size: 12px;
+}
+.notice p {
+  color: #d0c39b;
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+.notice code { color: #ffdf8a; }
+
+.message {                    /* mensagem de erro/sucesso do login */
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--yellow);
+}
+
+
+/* ==========================================================================
+   7. FORMULÁRIOS E CAMPOS
+   ========================================================================== */
+
+/* Abas Entrar / Criar conta */
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.tab {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 9px 15px;
+  background: transparent;
+  color: var(--muted);
+}
+.tab.active {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: #171b28;
+  font-weight: 700;
+}
+
+/* Rótulos */
+form label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-soft);
+  margin: 14px 0;
+}
+.lbl {                        /* rótulo fora de <form> (painel do admin) */
+  display: block;
+  font-size: 11px;
+  color: var(--text-soft);
+  margin: 14px 0 10px;
+}
+
+/* Campos de texto, número e listas */
+input,
+select {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  border: 1px solid var(--input-line);
+  background: var(--input-bg);
+  color: #fff;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  outline: none;
+}
+input:focus,
+select:focus { border-color: var(--yellow); }
+
+
+/* ==========================================================================
+   8. PAINEL DO JOGADOR (nome, saldo, arrematados)
+   ========================================================================== */
+.player-panel {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  padding: 16px 20px;
+}
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.avatar {
+  width: 43px;
+  height: 43px;
+  border-radius: var(--radius-md);
+  background: #30395a;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+.player-panel small {         /* legendas pequenas ("SEU SALDO") */
+  display: block;
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  margin-bottom: 5px;
+}
+.player-info strong,
+.wallet strong { font: 700 20px var(--font-display); }
+
+.wallet {                     /* caixinhas de saldo e de arrematados */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 140px;
+}
+.wallet > span {              /* ícone redondo ao lado do valor */
+  width: 37px;
+  height: 37px;
+  display: grid;
+  place-items: center;
+  background: #3d3424;
+  color: var(--yellow);
+  font-size: 22px;
+  border-radius: 10px;
+}
+
+
+/* ==========================================================================
+   9. LEILÃO: TÍTULO, BUSCA E FILTROS
+   ========================================================================== */
+.auction { padding-bottom: 25px; }
+
+.section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+.section-heading h2 {
+  font: 700 29px var(--font-display);
+  letter-spacing: -1px;
+  margin: 0;
+}
+.count {                      /* contador ao lado de "Pokédex" */
+  font: 600 11px var(--font-body);
+  color: var(--yellow);
+  background: #ffcc4d18;
+  padding: 5px 7px;
+  border-radius: var(--radius-xs);
+}
+
+/* Barra de busca + filtros: [ busca | tipo | situação ] */
+.toolbar {
+  display: grid;
+  grid-template-columns: 1fr 190px 220px;   /* larguras: busca, tipo, situação */
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.toolbar input,
+.toolbar select { margin-top: 0; }
+.search { font-size: 14px; }
+
+.catalog-status {             /* "Carregando a Pokédex..." */
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 14px;
+  min-height: 0;
+}
+.catalog-status:empty { display: none; }
+
+
+/* ==========================================================================
+   10. LEILÃO: GRADE E CARDS
+   ========================================================================== */
+
+/* Grade de cards — desktop: 3 por linha (tablet e celular: seção 14) */
+.pokemon-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+
+.pokemon-card {
+  border: 1px solid var(--line);
+  background: linear-gradient(145deg, var(--card-a), var(--card-b));
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Área da imagem (o brilho colorido vem da variável --glow definida no JavaScript) */
+.card-visual {
+  height: 145px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 60%, var(--glow), transparent 57%),
+    #1b2440;
+}
+.pokemon-img {                /* imagem oficial vinda da PokéAPI */
+  width: 122px;
+  height: 122px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 12px #0007);
+  z-index: 1;
+  margin-top: 14px;
+}
+.pokemon-emoji {              /* emoji usado quando o lote não tem imagem */
+  font-size: 75px;
+  filter: drop-shadow(0 12px 12px #0005);
+  z-index: 1;
+}
+
+/* Etiquetas sobre a imagem: tipo (esquerda) e número (direita) */
+.type-pill,
+.lot {
+  position: absolute;
+  top: 12px;
+  font-size: 10px;
+}
+.type-pill {
+  left: 12px;
+  padding: 5px 8px;
+  border-radius: var(--radius-xs);
+  background: #0d1325c9;
+  border: 1px solid #ffffff18;
+  font-weight: 700;
+}
+.lot {
+  right: 12px;
+  color: #b0bad3;
+  letter-spacing: 1px;
+}
+
+/* Corpo do card */
+.card-body { padding: 15px; }
+
+.pokemon-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.pokemon-title h3 {
+  font: 700 20px var(--font-display);
+  margin: 0;
+}
+
+/* Situação: "DISPONÍVEL", "LEILÃO ABERTO", "ENCERRADO" */
+.status {
+  font-size: 10px;
+  color: var(--green);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.status.closed { color: var(--red-soft); }
+.status.free   { color: var(--blue); }
+
+/* Linha do lance: valor à esquerda, líder à direita */
+.bid-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 11px 0;
+  border-top: 1px solid #ffffff10;
+  border-bottom: 1px solid #ffffff10;
+}
+.bid-label {
+  font-size: 9px;
+  color: #96a2c0;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.bid-value {
+  font: 700 22px var(--font-display);
+  color: var(--yellow);
+}
+.bidder {
+  font-size: 10px;
+  color: #aab6d2;
+  text-align: right;
+  max-width: 115px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Botões de lance (+25, +50, +100) */
+.bid-actions {
+  display: flex;
+  gap: 7px;
+  margin-top: 13px;
+}
+.bid-btn {
+  flex: 1;
+  border: 1px solid var(--btn-line);
+  border-radius: var(--radius-sm);
+  padding: 10px 4px;
+  background: var(--btn-bg);
+  color: #dce4fb;
+  font-size: 11px;
+  font-weight: 700;
+}
+.bid-btn:hover {
+  border-color: var(--yellow);
+  color: var(--yellow);
+}
+.bid-btn.main {               /* o botão de +100, em amarelo */
+  background: var(--yellow);
+  color: var(--on-yellow);
+  border-color: var(--yellow);
+}
+.bid-btn:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* Botões extras que só o administrador vê no card */
+.adm-row {
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.bid-btn.adm {
+  background: #1a2036;
+  border-style: dashed;
+  color: #c7b27a;
+  min-width: 45%;
+}
+
+.load-more {                  /* botão "Mostrar mais" */
+  display: block;
+  margin: 24px auto 0;
+  padding: 11px 22px;
+}
+
+
+/* ==========================================================================
+   11. PAINEL DO ADMINISTRADOR
+   ========================================================================== */
+.admin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+.admin p { margin-bottom: 0; }
+.admin.admin-v3 { display: block; }
+
+/* Caixas do painel: [ Leilão | Jogadores | Últimos lances | Zona de risco ] */
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+.admin-box {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background: #111729;
+}
+.admin-box h3 {
+  margin: 0 0 10px;
+  font: 700 15px var(--font-display);
+}
+.admin-box .muted b { color: var(--text); }
+
+.scroll-list {                /* listas com rolagem (jogadores, lances) */
+  max-height: 260px;
+  overflow: auto;
+  padding-right: 4px;
+}
+.badge {                      /* selo "ADM" ao lado do nome */
+  font-style: normal;
+  font-size: 9px;
+  background: var(--yellow);
+  color: var(--on-yellow);
+  border-radius: 4px;
+  padding: 2px 5px;
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+
+/* ==========================================================================
+   12. HISTÓRICO ("Últimos resultados", "Meus Pokémon", listas do admin)
+   ========================================================================== */
+.history { margin-top: 10px; }
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ffffff12;
+  font-size: 12px;
+}
+
+
+/* ==========================================================================
+   13. AVISO (TOAST) E RODAPÉ
+   ========================================================================== */
+.toast {                      /* mensagem rápida no canto inferior */
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: #26334c;
+  border: 1px solid #536080;
+  color: #fff;
+  font-size: 12px;
+  box-shadow: 0 10px 40px #0007;
+  display: none;
+  z-index: 5;
+}
+.toast.show { display: block; }
+
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #ffffff12;
+  padding: 22px 0 30px;
+  color: #7784a3;
+  font-size: 10px;
+}
+.small { font-size: 16px; }                      /* logotipo pequeno do rodapé */
+.small .pokeball { width: 22px; height: 22px; }
+
+
+/* ==========================================================================
+   14. RESPONSIVO
+   (os números dos breakpoints não aceitam variáveis; troque aqui mesmo)
+   ========================================================================== */
+
+/* Tablet: até 850px */
+@media (max-width: 850px) {
+  .pokemon-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }   /* 2 cards por linha */
+  .player-panel { gap: 15px; flex-wrap: wrap; }
+  .player-info { flex-basis: 40%; }
+  .wallet { flex: 1; }
+  .section-heading { align-items: flex-start; flex-direction: column; }
+
+  .toolbar { grid-template-columns: 1fr 1fr; }   /* busca em cima, filtros embaixo */
+  .search { grid-column: 1 / -1; }
+  .admin-grid { grid-template-columns: 1fr; }
+}
+
+/* Celular: até 560px */
+@media (max-width: 560px) {
+  main { padding: 0 15px; }
+  .topbar { padding: 0 16px; }
+  .topright { font-size: 0; }
+
+  .hero { min-height: 225px; }
+  .hero h1 { font-size: 39px; }
+  .hero-ball { position: absolute; right: -100px; opacity: .22; }
+
+  .player-panel { padding: 14px; }
+  .player-info { flex-basis: 100%; }
+  .wallet { min-width: 125px; }
+  .wallet strong { font-size: 17px; }
+
+  /* Cards viram linhas: imagem à esquerda (36%) e dados à direita (64%) */
+  .pokemon-grid { grid-template-columns: 1fr; }
+  .pokemon-card { display: grid; grid-template-columns: 36% 64%; }
+  .card-visual { height: 100%; min-height: 235px; }
+  .pokemon-emoji { font-size: 54px; }
+  .type-pill { font-size: 8px; left: 5px; top: 7px; }
+  .lot { right: 5px; top: 8px; font-size: 8px; }
+  .card-body { padding: 11px; }
+  .pokemon-title h3 { font-size: 17px; }
+  .bid-value { font-size: 18px; }
+  .bid-btn { font-size: 10px; padding: 9px 2px; }
+
+  .admin { align-items: flex-start; flex-direction: column; }
+  footer { gap: 10px; align-items: flex-start; flex-direction: column; }
+}
