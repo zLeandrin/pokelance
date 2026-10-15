@@ -1,4 +1,9 @@
-
+/*
+  PokéLance — front-end
+  1) Crie um projeto Supabase e execute supabase-schema.sql (ou patch.sql) no SQL Editor.
+  2) Preencha SUPABASE_URL e SUPABASE_ANON_KEY abaixo (chave anon/public — nunca a service_role).
+  3) Promova sua conta para admin usando o SQL do LEIA-ME.txt.
+*/
 const SUPABASE_URL = "https://mqzammkcdnjqbjcqthic.supabase.co".trim().replace(/\/(rest|auth|realtime|storage)\/v1.*$/, "").replace(/\/+$/, "");
 const SUPABASE_ANON_KEY = "sb_publishable_0-YTPU0ZWznaOlsfLqW2Sg_cAR2yJD1";
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_ANON_KEY.startsWith("COLE_");
