@@ -1,9 +1,4 @@
-/*
-  PokéLance — front-end
-  1) Crie um projeto Supabase e execute supabase-schema.sql (ou patch.sql) no SQL Editor.
-  2) Preencha SUPABASE_URL e SUPABASE_ANON_KEY abaixo (chave anon/public — nunca a service_role).
-  3) Promova sua conta para admin usando o SQL do LEIA-ME.txt.
-*/
+
 const SUPABASE_URL = "https://mqzammkcdnjqbjcqthic.supabase.co".trim().replace(/\/(rest|auth|realtime|storage)\/v1.*$/, "").replace(/\/+$/, "");
 const SUPABASE_ANON_KEY = "sb_publishable_0-YTPU0ZWznaOlsfLqW2Sg_cAR2yJD1";
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_ANON_KEY.startsWith("COLE_");
@@ -30,7 +25,7 @@ let catalog = [], catalogById = new Map(), typesById = {};
 let catalogState = "idle", typesState = "idle";  // idle | loading | ok | error
 let players = [], recentBids = [];
 let dataChannel = null, adminChannel = null, ownChannel = null;
-let visible = PAGE_SIZE, catalogStarted = false;
+let visible = PAGE_SIZE, catalogStarted = false, settingsLoaded = false;
 
 /* ---------- Utilidades ---------- */
 function money(n) { return "₽ " + Number(n || 0).toLocaleString("pt-BR"); }
@@ -198,7 +193,9 @@ async function loadWallet() {
 async function loadSettings() {
   const { data, error } = await sb.from("auction_settings").select("*").limit(1).maybeSingle();
   if (error || !data) return;           // sem a tabela (patch ainda não rodou): usa os padrões
+  const first = !settingsLoaded; settingsLoaded = true;
   settings = data;
+  if (first && settings.only_listed) $("statusFilter").value = "ativos";   // modo "só os liberados": começa mostrando o que está em leilão
   $("pausedBanner").classList.toggle("hidden", settings.bidding_open);
   renderGrid(); renderAdmin();
 }
@@ -228,9 +225,16 @@ function buildEntries() {
   }
   return list;
 }
+// Pode receber lance agora? Lote aberto e em leilão; sem lote, só se o modo "só os liberados" estiver desligado.
+function biddable(e) {
+  if (!e.lot) return !settings.only_listed;
+  return e.lot.status === "open" && e.lot.in_auction !== false;
+}
+// sold = arrematado | off = fora de leilão | free = disponível (sem lote) | open = em leilão | mine = em leilão e você lidera
 function statusOf(e) {
+  if (e.lot?.status === "closed") return "sold";
+  if (!biddable(e)) return "off";
   if (!e.lot) return "free";
-  if (e.lot.status === "closed") return "sold";
   return e.lot.highest_bidder_id === user?.id ? "mine" : "open";
 }
 function matches(e) {
@@ -245,9 +249,9 @@ function matches(e) {
   const tf = $("typeFilter").value;
   if (tf !== "Todos" && !e.types.includes(tf)) return false;
   const sf = $("statusFilter").value, st = statusOf(e);
-  if (sf === "livres" && st !== "free") return false;
-  if (sf === "abertos" && st !== "open" && st !== "mine") return false;
-  if (sf === "meus" && st !== "mine") return false;
+  if (sf === "ativos" && !biddable(e)) return false;
+  if (sf === "fora" && st !== "off") return false;
+  if (sf === "meus" && !(e.lot?.status === "open" && e.lot.highest_bidder_id === user?.id)) return false;
   if (sf === "vendidos" && st !== "sold") return false;
   return true;
 }
@@ -256,36 +260,43 @@ function matches(e) {
 function cardHtml(e) {
   const lot = e.lot, st = statusOf(e), admin = isAdmin();
   const paused = !settings.bidding_open;
-  const sold = st === "sold", mine = st === "mine", free = st === "free";
+  const sold = st === "sold", off = st === "off", mine = st === "mine", free = st === "free";
   const glow = TYPE_GLOW[e.types[0]] || "#ffcc4d44";
   const pills = e.types.map(t => `${TYPE_ICON[t] || "✨"} ${esc(t)}`).join(" · ");
   const visual = e.dex
     ? `<img class="pokemon-img" loading="lazy" alt="${esc(e.name)}" src="${SPRITE(e.dex)}" onerror="this.style.visibility='hidden'">`
     : `<div class="pokemon-emoji">${esc(lot?.emoji || "⭐")}</div>`;
-  const statusText = sold ? "LEILÃO ENCERRADO" : mine ? "VOCÊ ESTÁ NA LIDERANÇA" : free ? "● DISPONÍVEL" : "● LEILÃO ABERTO";
-  const statusCls = sold ? "closed" : free ? "free" : "";
-  const value = free ? settings.default_start_bid : sold ? (lot.winning_bid ?? lot.current_bid) : lot.current_bid;
-  const label1 = sold ? "LANCE VENCEDOR" : free ? "LANCE INICIAL" : "LANCE ATUAL";
+  const statusText = sold ? "LEILÃO ENCERRADO" : off ? "FORA DE LEILÃO" : mine ? "VOCÊ ESTÁ NA LIDERANÇA" : free ? "● DISPONÍVEL" : "● LEILÃO ABERTO";
+  const statusCls = sold ? "closed" : off ? "off" : free ? "free" : "";
+  const value = sold ? (lot.winning_bid ?? lot.current_bid) : free ? settings.default_start_bid : lot ? lot.current_bid : null;
+  const label1 = sold ? "LANCE VENCEDOR" : (free || !lot) ? "LANCE INICIAL" : off ? "LANCE GUARDADO" : "LANCE ATUAL";
   const label2 = sold ? "VENCEDOR" : "MAIOR LANCE";
-  const who = sold ? (lot.winner_name || "Sem vencedor") : (lot?.highest_bidder_name || (free ? "Sem lances" : "Lance inicial"));
+  const who = sold ? (lot.winner_name || "Sem vencedor")
+    : off && !lot ? "Aguardando o admin"
+    : (lot?.highest_bidder_name || (free ? "Sem lances" : "Lance inicial"));
   const ids = `data-dex="${e.dex ?? ""}" data-lot="${lot?.id ?? ""}"`;
   const locked = mine || paused;
   const bidBtns = sold
     ? `<button class="bid-btn" disabled>Encerrado</button>`
+    : off
+    ? `<button class="bid-btn" disabled>Fora de leilão</button>`
     : [25, 50, 100].map(a => `<button class="bid-btn${a === 100 ? " main" : ""}" data-act="bid" ${ids} data-amount="${a}" ${locked ? "disabled" : ""}>+ ₽${a}</button>`).join("");
   let adminBtns = "";
   if (admin) {
-    const b = [];
-    if (free && e.dex) b.push(`<button class="bid-btn adm" data-act="openlot" ${ids}>Definir preço</button>`);
-    if (lot && st !== "sold" && !lot.highest_bidder_id) b.push(`<button class="bid-btn adm" data-act="openlot" ${ids}>Preço inicial</button>`);
-    if (lot && st !== "sold") b.push(`<button class="bid-btn adm" data-act="close" ${ids}>✓ Encerrar</button>`);
-    if (lot) b.push(`<button class="bid-btn adm" data-act="release" ${ids}>${sold ? "↺ Devolver ao mercado" : "✕ Cancelar lote"}</button>`);
+    const b = [], btn = (act, label) => `<button class="bid-btn adm" data-act="${act}" ${ids}>${label}</button>`;
+    if (!lot && e.dex) b.push(btn("openlot", settings.only_listed ? "▶ Colocar em leilão" : "Definir preço"));
+    if (lot && !sold) {
+      b.push(lot.in_auction === false ? btn("resume", "▶ Colocar em leilão") : btn("pause", "⏸ Tirar do leilão"));
+      if (!lot.highest_bidder_id && e.dex) b.push(btn("openlot", "Preço inicial"));
+      b.push(btn("close", "✓ Encerrar"));
+    }
+    if (lot) b.push(btn("release", sold ? "↺ Devolver ao mercado" : "✕ Cancelar lote"));
     if (b.length) adminBtns = `<div class="bid-actions adm-row">${b.join("")}</div>`;
   }
-  return `<article class="pokemon-card"><div class="card-visual" style="--glow:${esc(glow)}"><span class="type-pill">${pills || "✨ ..."}</span><span class="lot">${e.dex ? "#" + String(e.dex).padStart(4, "0") : "LOTE #" + esc(lot?.id)}</span>${visual}</div>`
+  return `<article class="pokemon-card${off ? " is-off" : ""}"><div class="card-visual" style="--glow:${esc(glow)}"><span class="type-pill">${pills || "✨ ..."}</span><span class="lot">${e.dex ? "#" + String(e.dex).padStart(4, "0") : "LOTE #" + esc(lot?.id)}</span>${visual}</div>`
     + `<div class="card-body"><div class="pokemon-title"><h3>${esc(e.name)}</h3></div>`
     + `<div class="status ${statusCls}">${statusText}</div>`
-    + `<div class="bid-row"><div><div class="bid-label">${label1}</div><div class="bid-value">${money(value)}</div></div><div><div class="bid-label">${label2}</div><div class="bidder">${esc(who)}</div></div></div>`
+    + `<div class="bid-row"><div><div class="bid-label">${label1}</div><div class="bid-value">${value == null ? "—" : money(value)}</div></div><div><div class="bid-label">${label2}</div><div class="bidder">${esc(who)}</div></div></div>`
     + `<div class="bid-actions">${bidBtns}</div>${adminBtns}</div></article>`;
 }
 
@@ -302,7 +313,10 @@ function renderGrid() {
   else if (typesState === "error") status = "Alguns tipos não carregaram; o filtro por tipo pode estar incompleto. Recarregue a página para tentar de novo.";
   $("catalogStatus").textContent = status;
   $("pokemonGrid").innerHTML = shown.length ? shown.map(cardHtml).join("")
-    : `<p class="muted">${catalogState === "loading" ? "Carregando..." : "Nenhum Pokémon encontrado com esses filtros."}</p>`;
+    : `<p class="muted">${catalogState === "loading" ? "Carregando..."
+        : $("statusFilter").value === "ativos" && settings.only_listed && !$("search").value.trim() && $("typeFilter").value === "Todos"
+          ? "Nenhum Pokémon está em leilão agora. O administrador vai liberar os próximos."
+          : "Nenhum Pokémon encontrado com esses filtros."}</p>`;
   const more = list.length - shown.length;
   $("loadMore").classList.toggle("hidden", more <= 0);
   $("loadMore").textContent = `Mostrar mais (${more} restantes)`;
@@ -328,6 +342,8 @@ function renderHistory() {
 function renderAdmin() {
   if (!isAdmin()) return;
   $("biddingState").textContent = settings.bidding_open ? "Lances abertos" : "Lances pausados";
+  const nAtivos = lots.filter(l => l.status === "open" && l.in_auction !== false).length;
+  $("marketState").textContent = settings.only_listed ? `só os que você colocar em leilão (${nAtivos} em leilão agora)` : "todos aceitam lances";
   $("toggleBidding").textContent = settings.bidding_open ? "⏸ Pausar lances" : "▶ Retomar lances";
   if (document.activeElement !== $("defaultBid")) $("defaultBid").value = settings.default_start_bid;
   $("playersList").innerHTML = players.length ? players.map(p =>
@@ -393,6 +409,8 @@ $("pokemonGrid").addEventListener("click", ev => {
     case "openlot": openLot(dex, lotId); break;
     case "close": closeLot(lotId); break;
     case "release": releaseLot(lotId); break;
+    case "pause": callRpc("admin_set_in_auction", { p_pokemon_id: lotId, p_in: false }, "Saiu do leilão."); break;
+    case "resume": callRpc("admin_set_in_auction", { p_pokemon_id: lotId, p_in: true }, "Entrou em leilão."); break;
   }
 });
 
@@ -404,6 +422,12 @@ $("adminPanel").addEventListener("click", async ev => {
     const n = Math.floor(Number($("defaultBid").value));
     if (!(n >= 1)) { toast("Informe um lance inicial maior que zero."); return; }
     await callRpc("admin_update_settings", { p_bidding_open: settings.bidding_open, p_default_start_bid: n }, "Configurações salvas.");
+  } else if (b.id === "unlistAll") {
+    if (!confirm("Tirar TODOS os Pokémon do leilão?\n\nNinguém poderá dar lances até você colocar cada Pokémon em leilão de novo. Os lances já feitos ficam guardados e voltam quando o Pokémon voltar ao leilão.")) return;
+    await callRpc("admin_set_market", { p_only_listed: true }, "Todos os Pokémon saíram do leilão.");
+  } else if (b.id === "listAll") {
+    if (!confirm("Liberar TODOS os Pokémon para lances?\n\nQualquer jogador poderá dar lance em qualquer Pokémon.")) return;
+    await callRpc("admin_set_market", { p_only_listed: false }, "Todos os Pokémon liberados.");
   } else if (b.id === "resetSeason") {
     if (prompt("Isso apaga TODOS os lotes e lances e redefine os saldos.\nDigite REINICIAR para confirmar:") !== "REINICIAR") return;
     const bal = Math.floor(Number(prompt("Saldo inicial de cada jogador:", "1000")));
